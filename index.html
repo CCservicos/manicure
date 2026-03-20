@@ -831,6 +831,10 @@ const firebaseConfig = {
   databaseURL: "https://manicure-bba02-default-rtdb.firebaseio.com/"
 };
 
+// Funções 2ª geração usam URL do Cloud Run (*.run.app), NÃO cloudfunctions.net/sendWhatsApp
+// (a URL antiga não passa no preflight CORS). Atualize se o deploy gerar outra URL.
+const SEND_WHATSAPP_URL = 'https://sendwhatsapp-ijx75htvra-uc.a.run.app';
+
 let auth = null;
 let db = null;
 let firebaseSyncStarted = false;
@@ -1584,13 +1588,22 @@ async function waClientAutoConfirm(appt) {
   if (!toDigits) return;
 
   try {
-    if (!firebase?.functions) {
-      toast('Configure o backend WhatsApp para envio automatico', 'error');
-      return;
-    }
-    const fn = firebase.functions().httpsCallable('sendWhatsApp');
-    const text = buildClientConfirmText(appt);
-    await fn({ to: toDigits, text, apptId: appt.id, type: 'confirm' });
+    await ensureAuthReady();
+    const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
+    const url = SEND_WHATSAPP_URL;
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+      },
+      body: JSON.stringify({ apptId: appt.id, type: 'confirm', to: toDigits })
+    });
+
+    const json = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(json?.message || json?.error || res.statusText);
+
     toast('WhatsApp enviado ao cliente!', 'success');
   } catch (e) {
     const msg =
@@ -1643,12 +1656,22 @@ function buildWAUrl(number, lines) {
 
 async function waAdminNewRequest(appt) {
   if (!appt?.id) return;
-  if (!firebase?.functions) return;
-
   try {
-    const fn = firebase.functions().httpsCallable('sendWhatsApp');
-    // O backend envia para o WhatsApp da manicure (meta/waNum) e monta o texto.
-    await fn({ apptId: appt.id, type: 'new_request' });
+    await ensureAuthReady();
+    const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
+    const url = SEND_WHATSAPP_URL;
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': 'Bearer ' + token } : {})
+      },
+      body: JSON.stringify({ apptId: appt.id, type: 'new_request' })
+    });
+
+    const json = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(json?.message || json?.error || res.statusText);
   } catch (e) {
     // Não bloqueia o fluxo do cliente; apenas sinaliza erro no UI.
     const msg =
