@@ -1,0 +1,11 @@
+{
+  "name": "Rita Cassia · Manicure",
+  "short_name": "Rita Cassia",
+  "description": "Agendamento de manicure",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#F2F2F7",
+  "theme_color": "#007AFF"
+}

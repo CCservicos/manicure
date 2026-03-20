@@ -2,6 +2,9 @@
   "functions": {
     "source": "functions",
     "runtime": "nodejs24"
+  },
+  "database": {
+    "rules": "database.rules.json"
   }
 }
 

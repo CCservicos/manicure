@@ -7,9 +7,12 @@
 <meta name="color-scheme" content="light">
 <meta name="format-detection" content="telephone=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Rita Cassia">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="manifest" href="manifest.webmanifest">
+<!-- Manifest inline evita 404 no GitHub Pages se o arquivo não estiver no deploy -->
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8;base64,eyJuYW1lIjoiUml0YSBDYXNzaWEgTWFuaWN1cmUiLCJzaG9ydF9uYW1lIjoiUml0YSBDYXNzaWEiLCJzdGFydF91cmwiOiIuLyIsInNjb3BlIjoiLi8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjRjJGMkY3IiwidGhlbWVfY29sb3IiOiIjMDA3QUZGIn0=">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect fill='%23007AFF' width='180' height='180' rx='40'/%3E%3Ctext x='90' y='118' font-size='88' text-anchor='middle' fill='white'%3E💅%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect fill='%23007AFF' width='180' height='180' rx='40'/%3E%3Ctext x='90' y='118' font-size='88' text-anchor='middle' fill='white'%3E💅%3C/text%3E%3C/svg%3E">
 <title>Rita Cassia · Manicure</title>
 <style>
@@ -838,16 +841,100 @@ let auth = null;
 let db = null;
 let firebaseSyncStarted = false;
 let apptsRemoteIds = new Set();
+let firebaseDbErrorToasted = false;
+
+/** Tenta login anônimo (visitantes). Exige "Anônimo" ativo no Firebase + domínio autorizado. */
+function tryAnonymousAuth() {
+  if (!auth || auth.currentUser) return Promise.resolve(auth.currentUser);
+  return auth.signInAnonymously().catch((e) => {
+    console.warn('[Firebase] Login anônimo:', e?.code, e?.message);
+    if (e?.code === 'auth/operation-not-allowed') {
+      console.warn('[Firebase] Ative: Authentication → Sign-in method → Anônimo.');
+    }
+    return null;
+  });
+}
 
 function ensureAuthReady() {
   if (!auth) return Promise.resolve(null);
   if (auth.currentUser) return Promise.resolve(auth.currentUser);
+  // Não resolver na 1ª emissão com user=null (senão gravações falham antes do anônimo).
   return new Promise((resolve) => {
+    let settled = false;
+    const finish = (u) => {
+      if (settled) return;
+      settled = true;
+      try { unsub(); } catch (e) {}
+      resolve(u);
+    };
     const unsub = auth.onAuthStateChanged((user) => {
-      try { if (typeof unsub === 'function') unsub(); } catch (e) {}
-      resolve(user);
+      if (user) finish(user);
     });
+    tryAnonymousAuth().then(() => {
+      if (auth.currentUser) finish(auth.currentUser);
+    });
+    setTimeout(() => finish(auth.currentUser), 12000);
   });
+}
+
+/**
+ * Espera usuário autenticado (anônimo ou email) antes de gravar no RTDB.
+ * Evita PERMISSION_DENIED quando o save roda antes do signInAnonymously terminar.
+ */
+function ensureAuthReadyForWrite() {
+  if (!auth) return Promise.reject(new Error('NO_AUTH'));
+  if (auth.currentUser) return Promise.resolve(auth.currentUser);
+  return new Promise((resolve, reject) => {
+    let done = false;
+    const finishOk = (u) => {
+      if (done || !u) return;
+      done = true;
+      try { unsub(); } catch (e) {}
+      clearInterval(poll);
+      resolve(u);
+    };
+    const finishFail = () => {
+      if (done) return;
+      done = true;
+      try { unsub(); } catch (e) {}
+      clearInterval(poll);
+      reject(new Error('AUTH_TIMEOUT'));
+    };
+    const unsub = auth.onAuthStateChanged((user) => {
+      if (user) finishOk(user);
+    });
+    tryAnonymousAuth();
+    let n = 0;
+    const poll = setInterval(() => {
+      if (auth.currentUser) finishOk(auth.currentUser);
+      else {
+        n++;
+        if (n % 4 === 0) tryAnonymousAuth();
+        if (n >= 50) finishFail();
+      }
+    }, 400);
+  });
+}
+
+/** RTDB não aceita valores `undefined` em .set() — remove antes de salvar. */
+function stripUndefinedDeep(v) {
+  if (v === undefined) return null;
+  if (v === null || typeof v !== 'object') return v;
+  if (Array.isArray(v)) return v.map(stripUndefinedDeep);
+  const o = {};
+  Object.keys(v).forEach((k) => {
+    if (v[k] !== undefined) o[k] = stripUndefinedDeep(v[k]);
+  });
+  return o;
+}
+
+function onRealtimeDbError(err, ctx) {
+  const code = err && err.code;
+  console.error('[Realtime DB]', ctx, code || err && err.message || err);
+  if (!firebaseDbErrorToasted && (code === 'PERMISSION_DENIED' || (err && String(err.message || '').indexOf('permission') >= 0))) {
+    firebaseDbErrorToasted = true;
+    toast('Firebase: sem permissão. Ative login anônimo e adicione este domínio em Authentication.', 'error');
+  }
 }
 
 const cfgDefaults = {
@@ -954,9 +1041,7 @@ function initFirebaseSync() {
   } catch (e) {}
 
   // Adia o login anônimo para não competir com o 1º paint / login por email (fica mais fluido).
-  setTimeout(() => {
-    if (!auth.currentUser) auth.signInAnonymously().catch(() => {});
-  }, 400);
+  setTimeout(() => { tryAnonymousAuth(); }, 400);
 
   auth.onAuthStateChanged((user) => {
     isAdmin = isUserAdmin(user);
@@ -974,7 +1059,7 @@ function initFirebaseSync() {
     waNum = snap.val() || '';
     const waInput = document.getElementById('waNumber');
     if (waInput && typeof waNum === 'string') waInput.value = waNum;
-  });
+  }, (err) => onRealtimeDbError(err, 'meta/waNum'));
 
   // Sync de configurações
   db.ref('cfg').on('value', (snap) => {
@@ -989,7 +1074,7 @@ function initFirebaseSync() {
     }
     if (isAdmin && document.getElementById('clients')?.classList.contains('active')) renderClients();
     if (isAdmin && document.getElementById('config')?.classList.contains('active')) { renderSvcEdit(); renderBlocked(); }
-  });
+  }, (err) => onRealtimeDbError(err, 'cfg'));
 
   // Sync de agendamentos
   db.ref('appts').on('value', (snap) => {
@@ -1000,7 +1085,7 @@ function initFirebaseSync() {
     if (active === 'admin') { renderCal(); renderAppts(); updateStats(); }
     else if (active === 'clients') renderClients();
     else if (active === 'client') renderPickCal();
-  });
+  }, (err) => onRealtimeDbError(err, 'appts'));
 }
 
 function reqAuth(tab) { if (isAdmin) goTab(tab); else showLogin(); }
@@ -1996,9 +2081,13 @@ function reqNotifPerm() {
 // ============================================================
 function saveAppts() {
   if (db) {
-    return ensureAuthReady().then(() => {
+    return ensureAuthReadyForWrite().then(() => {
+      if (!auth.currentUser) {
+        toast('Autenticação pendente. Ative login anônimo no Firebase (Authentication).', 'error');
+        return null;
+      }
       const newIds = new Set(appts.map(a => a.id));
-      const writes = appts.map(a => db.ref('appts/' + a.id).set(a));
+      const writes = appts.map(a => db.ref('appts/' + a.id).set(stripUndefinedDeep(a)));
       const deletes = [];
       apptsRemoteIds.forEach(id => {
         if (!newIds.has(id)) deletes.push(db.ref('appts/' + id).remove());
@@ -2006,13 +2095,26 @@ function saveAppts() {
 
       return Promise.all([...writes, ...deletes]).catch((e) => {
         console.error('Erro ao salvar appts (appts/<id>) no Realtime DB:', e);
-        toast('Falha ao salvar agendamentos (DB permission_denied)', 'error');
+        const msg = e && e.message ? String(e.message) : '';
+        if (msg.indexOf('PERMISSION_DENIED') >= 0 || msg.indexOf('permission') >= 0) {
+          toast('Sem permissão no banco. Publique as regras (appts/$id .write: auth != null) e login anônimo.', 'error');
+        } else {
+          toast('Falha ao salvar agendamentos.', 'error');
+        }
         return null;
       }).then((p) => {
         apptsRemoteIds = newIds;
         updateBadge();
         return p;
       });
+    }).catch((e) => {
+      if (e && e.message === 'AUTH_TIMEOUT') {
+        toast('Não autenticou a tempo. Verifique login anônimo e domínio autorizado.', 'error');
+      } else {
+        toast('Não foi possível autenticar para salvar.', 'error');
+      }
+      console.warn('saveAppts auth:', e);
+      return null;
     });
   }
   localStorage.setItem('rc2_appts', JSON.stringify(appts));
