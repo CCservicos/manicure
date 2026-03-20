@@ -1048,17 +1048,57 @@ function fillClientFromSlug(slug) {
   } catch (e) {}
 }
 
+const RC2_CLIENT_PROFILE_KEY = 'rc2_client_profile';
+
+function loadClientProfileIntoForm() {
+  try {
+    const p = JSON.parse(localStorage.getItem(RC2_CLIENT_PROFILE_KEY) || 'null');
+    if (!p) return;
+    const nameEl = document.getElementById('clientName');
+    const waEl = document.getElementById('clientWA');
+    if (nameEl && p.name) nameEl.value = p.name;
+    if (waEl && p.wa != null && String(p.wa) !== '') waEl.value = String(p.wa).replace(/\D/g, '');
+  } catch (e) {}
+}
+
+function persistClientProfileNow() {
+  const name = (document.getElementById('clientName')?.value || '').trim();
+  const wa = (document.getElementById('clientWA')?.value || '').replace(/\D/g, '');
+  try {
+    if (!name && !wa) {
+      localStorage.removeItem(RC2_CLIENT_PROFILE_KEY);
+    } else {
+      localStorage.setItem(RC2_CLIENT_PROFILE_KEY, JSON.stringify({ name, wa, t: Date.now() }));
+    }
+  } catch (e) {}
+}
+
+let clientProfileSaveTimer = null;
+function schedulePersistClientProfile() {
+  clearTimeout(clientProfileSaveTimer);
+  clientProfileSaveTimer = setTimeout(() => {
+    clientProfileSaveTimer = null;
+    persistClientProfileNow();
+  }, 400);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   const hint = document.getElementById('iosPwaHint');
   if (hint && isIOS && !isStandalone) hint.style.display = 'block';
 
-  try {
-    const p = JSON.parse(localStorage.getItem('rc2_client_profile') || 'null');
-    if (p && p.name) document.getElementById('clientName').value = p.name;
-    if (p && p.wa) document.getElementById('clientWA').value = p.wa;
-  } catch (e) {}
+  loadClientProfileIntoForm();
+  const cn = document.getElementById('clientName');
+  const cw = document.getElementById('clientWA');
+  if (cn) {
+    cn.addEventListener('input', schedulePersistClientProfile);
+    cn.addEventListener('blur', persistClientProfileNow);
+  }
+  if (cw) {
+    cw.addEventListener('input', schedulePersistClientProfile);
+    cw.addEventListener('blur', persistClientProfileNow);
+  }
 
   window.addEventListener('hashchange', applyRoute);
   window.addEventListener('popstate', applyRoute);
@@ -1593,9 +1633,7 @@ function submitBooking() {
       adminNotified: false
     };
 
-    try {
-      localStorage.setItem('rc2_client_profile', JSON.stringify({ name, wa: waClient, t: Date.now() }));
-    } catch (e) {}
+    persistClientProfileNow();
 
     appts.push(a);
     const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
@@ -1620,8 +1658,7 @@ function submitBooking() {
 
 function resetWiz() {
   wiz = { procs: [], date: '', time: '' };
-  document.getElementById('clientName').value = '';
-  document.getElementById('clientWA').value = '';
+  loadClientProfileIntoForm();
   document.getElementById('clientObs').value = '';
   document.querySelectorAll('input[name="cp"]').forEach(c => c.checked = false);
   document.getElementById('clientDate').value = '';
