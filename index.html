@@ -355,7 +355,6 @@ html{height:100%;-webkit-text-size-adjust:100%;touch-action:manipulation;}
 .pick-cell.full{border:2px solid rgba(255,59,48,.45);background:rgba(255,59,48,.12);}
 .pick-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;padding:0 4px;font-size:11px;font-weight:600;color:var(--lbl3);}
 .pick-legend span{display:inline-flex;align-items:center;gap:5px;}
-.ts-lbl-warn{box-shadow:0 0 0 2px rgba(255,149,0,.55);background:rgba(255,149,0,.12) !important;color:var(--lbl) !important;}
 .sync-banner{display:none;font-size:13px;font-weight:600;color:var(--lbl2);padding:10px 12px;border-radius:var(--r);background:rgba(255,149,0,.12);border:1px solid rgba(255,149,0,.25);margin-bottom:12px;}
 .sync-banner.show{display:block;}
 
@@ -1531,15 +1530,11 @@ function loadClientSlots() {
   const durMin = procsDurMin(wiz.procs);
   const el = document.getElementById('clientSlots');
   if (!slots.length) { el.innerHTML = '<p style="color:var(--red);grid-column:1/-1;font-size:14px">Sem horários configurados</p>'; return; }
-  const validStarts = slots.filter(t => slotAvailableForBooking(date, t, durMin));
-  const critSet = new Set();
-  if (validStarts.length > 1) validStarts.slice(-2).forEach(t => critSet.add(t));
   el.innerHTML = slots.map(t => {
     const off = !slotAvailableForBooking(date, t, durMin);
     const sid = 'ct' + t.replace(':', '');
-    const crit = !off && critSet.has(t);
     return `<div class="ts"><input type="radio" name="ct" id="${sid}" value="${t}" ${off ? 'disabled' : ''} onchange="wPickTime('${t}')">
-      <label for="${sid}" class="ts-lbl${crit ? ' ts-lbl-warn' : ''}">${t}${crit ? ' ·' : ''}</label></div>`;
+      <label for="${sid}" class="ts-lbl">${t}</label></div>`;
   }).join('');
 }
 
