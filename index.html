@@ -348,7 +348,6 @@ body{font-family:var(--font);background:var(--bg);min-height:100vh;color:var(--l
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-functions-compat.js"></script>
 </head>
 <body>
 
@@ -522,7 +521,7 @@ body{font-family:var(--font);background:var(--bg);min-height:100vh;color:var(--l
           <span class="phone-pre">+55</span>
           <input type="tel" class="ios-field" id="clientWA" placeholder="DDD + número" maxlength="11" inputmode="numeric">
         </div>
-        <p style="font-size:12px;color:var(--lbl3);margin-top:4px;padding-left:4px">Recomendado — você receberá confirmação automática</p>
+        <p style="font-size:12px;color:var(--lbl3);margin-top:4px;padding-left:4px">Recomendado — ao confirmar, abriremos o WhatsApp com mensagem pronta para você enviar</p>
       </div>
       <div class="ios-field-wrap">
         <div class="field-label">Observações (opcional)</div>
@@ -543,7 +542,7 @@ body{font-family:var(--font);background:var(--bg);min-height:100vh;color:var(--l
       <li>Escolha o serviço e veja o preço e duração</li>
       <li>Selecione data e horário disponíveis</li>
       <li>Informe seu nome e WhatsApp</li>
-      <li>Aguarde — você receberá confirmação automática!</li>
+      <li>Aguarde — a manicure pode abrir o WhatsApp com mensagem pronta para confirmar</li>
     </ol>
   </div>
 </div>
@@ -830,10 +829,6 @@ const firebaseConfig = {
   measurementId: "G-Y0WLZZKDM2",
   databaseURL: "https://manicure-bba02-default-rtdb.firebaseio.com/"
 };
-
-// Funções 2ª geração usam URL do Cloud Run (*.run.app), NÃO cloudfunctions.net/sendWhatsApp
-// (a URL antiga não passa no preflight CORS). Atualize se o deploy gerar outra URL.
-const SEND_WHATSAPP_URL = 'https://sendwhatsapp-ijx75htvra-uc.a.run.app';
 
 let auth = null;
 let db = null;
@@ -1298,7 +1293,7 @@ function submitBooking() {
     addNotif('Novo pedido: ' + name + ' para ' + fmtDate(wiz.date) + ' as ' + wiz.time);
 
     const msg = waClient
-      ? 'Agendamento enviado! Voce recebera confirmacao no WhatsApp em breve.'
+      ? 'Agendamento enviado! Abriremos o WhatsApp da manicure com o pedido — é só enviar.'
       : 'Agendamento enviado! Aguarde a confirmacao.';
     document.getElementById('clientConfirmMsg').textContent = msg;
     document.getElementById('clientConfirmModal').classList.add('active');
@@ -1554,65 +1549,15 @@ function confirmAppt(id) {
   const a = appts.find(x => x.id === id);
   if (!a) return;
 
-  // Evita disparar WhatsApp repetidamente se o usuário clicar duas vezes.
+  // Evita abrir WhatsApp repetidamente se o usuário clicar duas vezes.
   if (a.status === 'confirmed') return;
 
   a.status = 'confirmed';
-  // Aguarda salvar no Realtime Database antes de disparar o WhatsApp backend.
-  saveAppts().then(() => {
-    if (a.wa) void waClientAutoConfirm(a);
-  }).catch(() => {
-    if (a.wa) void waClientAutoConfirm(a);
-  });
+  saveAppts();
   renderAppts(); updateStats(); renderCal();
   toast('Confirmado!', 'success');
-}
-
-function buildClientConfirmText(a) {
-  return [
-    'Ola, ' + a.name + '!',
-    '',
-    'Seu agendamento esta CONFIRMADO!',
-    '',
-    'Data: ' + fmtDate(a.date),
-    'Horario: ' + a.time,
-    'Servicos: ' + fmtProcs(a.procs),
-    a.total ? 'Valor: R$ ' + fmtNum(a.total) : '',
-    '',
-    'Te esperamos! -- Rita Cassia Manicure'
-  ].filter(Boolean).join('\n');
-}
-
-async function waClientAutoConfirm(appt) {
-  const toDigits = String(appt.wa || '').replace(/\D/g, '');
-  if (!toDigits) return;
-
-  try {
-    await ensureAuthReady();
-    const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
-    const url = SEND_WHATSAPP_URL;
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': 'Bearer ' + token } : {})
-      },
-      body: JSON.stringify({ apptId: appt.id, type: 'confirm', to: toDigits })
-    });
-
-    const json = await res.json().catch(() => null);
-    if (!res.ok) throw new Error(json?.message || json?.error || res.statusText);
-
-    toast('WhatsApp enviado ao cliente!', 'success');
-  } catch (e) {
-    const msg =
-      (e && e.message) ? e.message :
-      (e && e?.details && e.details.message) ? e.details.message :
-      'Falha ao enviar WhatsApp ao cliente';
-    console.error('Erro sendWhatsApp(confirm):', e);
-    toast(msg, 'error');
-  }
+  // Abre wa.me com mensagem pronta (o admin envia no app do WhatsApp).
+  if (a.wa) waClient(id, 'confirm');
 }
 
 function confirmFromDay(id, ds) {
@@ -1654,38 +1599,23 @@ function buildWAUrl(number, lines) {
   return 'https://wa.me/55' + number + '?text=' + encodeURIComponent(text);
 }
 
-async function waAdminNewRequest(appt) {
-  if (!appt?.id) return;
-  try {
-    await ensureAuthReady();
-    const token = auth?.currentUser ? await auth.currentUser.getIdToken() : null;
-    const url = SEND_WHATSAPP_URL;
-
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': 'Bearer ' + token } : {})
-      },
-      body: JSON.stringify({ apptId: appt.id, type: 'new_request' })
-    });
-
-    const json = await res.json().catch(() => null);
-    if (!res.ok) throw new Error(json?.message || json?.error || res.statusText);
-  } catch (e) {
-    // Não bloqueia o fluxo do cliente; apenas sinaliza erro no UI.
-    const msg =
-      (e && e.message) ? e.message :
-      (e && e?.details && e.details.message) ? e.details.message :
-      'Falha ao avisar a manicure (WhatsApp)';
-    console.error('Erro sendWhatsApp(new_request):', e);
-    toast(msg, 'error');
-  }
-}
-
 function sendWAToAdmin(a) {
-  // Disparo automático via backend (Twilio).
-  void waAdminNewRequest(a);
+  if (!waNum) return;
+  const procs = fmtProcs(a.procs);
+  const total = a.total ? ' | R$ ' + fmtNum(a.total) : '';
+  const lines = [
+    'Novo Agendamento - Rita Cassia Manicure',
+    '',
+    'Cliente: ' + a.name,
+    'Data: ' + fmtDate(a.date),
+    'Horario: ' + a.time,
+    'Servicos: ' + procs + total,
+    a.wa ? 'WhatsApp cliente: ' + a.wa : '',
+    a.obs ? 'Obs: ' + a.obs : '',
+    '',
+    'Status: Pendente de confirmacao'
+  ].filter(l => l !== undefined);
+  window.open(buildWAUrl(waNum, lines), '_blank');
 }
 
 function waClient(id, type, openTab) {
