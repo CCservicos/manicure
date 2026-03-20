@@ -10,8 +10,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Rita Cassia">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<!-- Inclua manifest.webmanifest e logo.png no deploy (GitHub Pages, Netlify, etc.) -->
-<link rel="manifest" href="manifest.webmanifest">
+<!-- Manifest inline: evita 404 no GitHub Pages se manifest.webmanifest não for commitado -->
+<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Rita%20Cassia%20%C2%B7%20Manicure%22%2C%22short_name%22%3A%22Rita%20Cassia%22%2C%22description%22%3A%22Agendamento%20de%20manicure%22%2C%22start_url%22%3A%22.%2F%22%2C%22scope%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22portrait-primary%22%2C%22background_color%22%3A%22%23F2F2F7%22%2C%22theme_color%22%3A%22%23007AFF%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%253D'http%253A%252F%252Fwww.w3.org%252F2000%252Fsvg'%2520viewBox%253D'0%25200%2520512%2520512'%253E%253Crect%2520fill%253D'%2523007AFF'%2520width%253D'512'%2520height%253D'512'%2520rx%253D'96'%252F%253E%253Ctext%2520x%253D'256'%2520y%253D'320'%2520font-size%253D'200'%2520text-anchor%253D'middle'%2520fill%253D'white'%2520font-family%253D'system-ui%252Csans-serif'%2520font-weight%253D'700'%253ERC%253C%252Ftext%253E%253C%252Fsvg%253E%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%22%7D%5D%7D">
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="apple-touch-icon" href="logo.png">
 <title>Rita Cassia · Manicure</title>
@@ -881,6 +881,8 @@ let db = null;
 let firebaseSyncStarted = false;
 let apptsRemoteIds = new Set();
 let firebaseDbErrorToasted = false;
+/** Evita signInAnonymously antes do Firebase restaurar email/senha do IndexedDB (F5). */
+let pendingAnonTimer = null;
 
 function isUserAdmin(user) {
   if (!user || !user.email) return false;
@@ -1141,9 +1143,12 @@ function initFirebaseSync() {
     auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
   } catch (e) {}
 
-  setTimeout(() => { tryAnonymousAuth(); }, 400);
-
   auth.onAuthStateChanged((user) => {
+    if (pendingAnonTimer) {
+      clearTimeout(pendingAnonTimer);
+      pendingAnonTimer = null;
+    }
+
     isAdmin = isUserAdmin(user);
     applyAuth();
 
@@ -1152,6 +1157,13 @@ function initFirebaseSync() {
     if (isAdmin && active === 'admin') { renderCal(); renderAppts(); updateStats(); }
 
     if (isAdmin) checkNewApptNotifs();
+
+    if (!user) {
+      pendingAnonTimer = setTimeout(() => {
+        pendingAnonTimer = null;
+        if (auth && !auth.currentUser) tryAnonymousAuth();
+      }, 900);
+    }
   });
 
   db.ref('meta/waNum').on('value', (snap) => {
@@ -1540,7 +1552,6 @@ function buildSummary() {
   const svcs = wiz.procs.map(id => cfg.services.find(s => s.id === id)).filter(Boolean);
   const total = svcs.reduce((s, v) => s + Number(v.price), 0);
   const totalDur = procsDurMin(wiz.procs);
-  const blocks = Math.max(1, Math.ceil(totalDur / slotStepMin()));
   const [y, m, d] = wiz.date.split('-');
   document.getElementById('bookingSummary').innerHTML =
     '<div class="bs-title">Resumo</div>' +
@@ -1548,7 +1559,6 @@ function buildSummary() {
     `<div class="bs-row"><span>Data</span><span>${d}/${m}/${y}</span></div>` +
     `<div class="bs-row"><span>Horário início</span><span>${wiz.time}</span></div>` +
     `<div class="bs-row"><span>Duração total</span><span>${totalDur} min</span></div>` +
-    `<div class="bs-row" style="font-weight:500"><span>Blocos no calendário</span><span>${blocks} × ${slotStepMin()} min</span></div>` +
     `<div class="bs-row"><span>Total estimado</span><span>R$ ${fmtNum(total)}</span></div>`;
 }
 
