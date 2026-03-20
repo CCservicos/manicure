@@ -2,18 +2,18 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
 <meta name="theme-color" content="#007AFF">
-<meta name="color-scheme" content="light">
+<meta name="color-scheme" content="light dark">
 <meta name="format-detection" content="telephone=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Rita Cassia">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<!-- Manifest inline evita 404 no GitHub Pages se o arquivo não estiver no deploy -->
-<link rel="manifest" href="data:application/manifest+json;charset=utf-8;base64,eyJuYW1lIjoiUml0YSBDYXNzaWEgTWFuaWN1cmUiLCJzaG9ydF9uYW1lIjoiUml0YSBDYXNzaWEiLCJzdGFydF91cmwiOiIuLyIsInNjb3BlIjoiLi8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjRjJGMkY3IiwidGhlbWVfY29sb3IiOiIjMDA3QUZGIn0=">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect fill='%23007AFF' width='180' height='180' rx='40'/%3E%3Ctext x='90' y='118' font-size='88' text-anchor='middle' fill='white'%3E💅%3C/text%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect fill='%23007AFF' width='180' height='180' rx='40'/%3E%3Ctext x='90' y='118' font-size='88' text-anchor='middle' fill='white'%3E💅%3C/text%3E%3C/svg%3E">
+<!-- Inclua manifest.webmanifest e logo.png no deploy (GitHub Pages, Netlify, etc.) -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
 <title>Rita Cassia · Manicure</title>
 <style>
 :root {
@@ -44,12 +44,13 @@
   --font:   -apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{font-family:var(--font);background:var(--bg);min-height:100vh;min-height:-webkit-fill-available;color:var(--lbl);-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom,0px);}
-html{height:100%;-webkit-text-size-adjust:100%;}
+body{font-family:var(--font);background:var(--bg);min-height:100vh;min-height:-webkit-fill-available;color:var(--lbl);-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom,0px);touch-action:manipulation;}
+html{height:100%;-webkit-text-size-adjust:100%;touch-action:manipulation;}
 
 /* NAV BAR */
 .nav{background:rgba(242,242,247,.88);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep-op);padding:0 16px;padding-top:env(safe-area-inset-top);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;min-height:56px;}
-.nav-brand{display:flex;flex-direction:column;align-items:center;}
+.nav-brand{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40px;}
+.nav-logo{display:block;height:40px;width:auto;max-width:min(58vw,220px);object-fit:contain;}
 .nav-title{font-size:17px;font-weight:600;color:var(--lbl);letter-spacing:-.4px;}
 .nav-sub{font-size:11px;color:var(--lbl3);}
 .nav-actions{display:flex;gap:8px;align-items:center;}
@@ -210,8 +211,9 @@ html{height:100%;-webkit-text-size-adjust:100%;}
 .cal-cell.other{opacity:.18;background:transparent;pointer-events:none;}
 .cal-cell.closed{background:var(--fill4);cursor:default;}
 .cal-cell.today{background:var(--blue-t);}
-.cal-cell.few{background:rgba(255,149,0,.1);}
-.cal-cell.full{background:rgba(255,59,48,.08);}
+.cal-cell.few{background:rgba(255,149,0,.14);border:2px solid rgba(255,149,0,.45);}
+.cal-cell.full{background:rgba(255,59,48,.12);border:2px solid rgba(255,59,48,.4);}
+.cal-cell:not(.closed):not(.other):not(.few):not(.full):not(.today){border:2px solid rgba(52,199,89,.4);background:rgba(52,199,89,.08);}
 .cal-num{font-size:13px;font-weight:600;color:var(--lbl);letter-spacing:-.3px;}
 .cal-cell.today .cal-num{color:var(--blue);font-weight:800;}
 .cal-chip{font-size:9px;font-weight:700;background:var(--blue-t);color:var(--blue);border-radius:4px;padding:1px 4px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -263,16 +265,6 @@ html{height:100%;-webkit-text-size-adjust:100%;}
 .empty-p{font-size:15px;color:var(--lbl3);max-width:220px;line-height:1.5;}
 
 /* NOTIF PANEL */
-#notifPanel{position:fixed;top:60px;right:12px;width:280px;background:var(--card);border-radius:var(--rl);box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:400;display:none;overflow:hidden;animation:fadeUp .2s ease;max-height:360px;overflow-y:auto;}
-.notif-hdr{padding:12px 16px 10px;border-bottom:.5px solid var(--sep-op);display:flex;justify-content:space-between;align-items:center;}
-.notif-hdr-title{font-size:15px;font-weight:700;color:var(--lbl);}
-.notif-item{padding:10px 16px;border-bottom:.5px solid var(--sep-op);}
-.notif-item:last-child{border-bottom:none;}
-.notif-msg{font-size:13px;color:var(--lbl);letter-spacing:-.2px;}
-.notif-time{font-size:11px;color:var(--lbl3);margin-top:2px;}
-.notif-btn-wrap{position:relative;}
-.notif-badge{background:var(--red);color:white;border-radius:50%;width:17px;height:17px;font-size:10px;font-weight:800;display:none;align-items:center;justify-content:center;position:absolute;top:-4px;right:-4px;}
-
 /* DAYS SELECTOR */
 .days-sel{display:flex;gap:6px;flex-wrap:wrap;}
 .day-pill{position:relative;}
@@ -352,8 +344,45 @@ html{height:100%;-webkit-text-size-adjust:100%;}
 .pick-cell.today{border:2px solid var(--blue);color:var(--blue);font-weight:800;}
 .pick-cell.selected{background:var(--blue);color:white !important;border-radius:50%;border:none;}
 .pick-cell.today.selected{background:var(--blue);border:none;}
+.pick-cell .pick-cell-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+.pick-cell .pick-num{line-height:1;}
+.pick-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.pick-dot--ok{background:var(--green);box-shadow:0 0 0 1px rgba(52,199,89,.35);}
+.pick-dot--warn{background:var(--orange);box-shadow:0 0 0 1px rgba(255,149,0,.4);}
+.pick-dot--bad{background:var(--red);box-shadow:0 0 0 1px rgba(255,59,48,.35);}
+.pick-cell.avail{border:2px solid rgba(52,199,89,.45);background:rgba(52,199,89,.1);}
+.pick-cell.few{border:2px solid rgba(255,149,0,.55);background:rgba(255,149,0,.14);}
+.pick-cell.full{border:2px solid rgba(255,59,48,.45);background:rgba(255,59,48,.12);}
+.pick-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;padding:0 4px;font-size:11px;font-weight:600;color:var(--lbl3);}
+.pick-legend span{display:inline-flex;align-items:center;gap:5px;}
+.ts-lbl-warn{box-shadow:0 0 0 2px rgba(255,149,0,.55);background:rgba(255,149,0,.12) !important;color:var(--lbl) !important;}
+.sync-banner{display:none;font-size:13px;font-weight:600;color:var(--lbl2);padding:10px 12px;border-radius:var(--r);background:rgba(255,149,0,.12);border:1px solid rgba(255,149,0,.25);margin-bottom:12px;}
+.sync-banner.show{display:block;}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --card: #1c1c1e;
+    --lbl: #f2f2f7;
+    --lbl2: #ebebf5;
+    --lbl3: rgba(235,235,245,.6);
+    --lbl4: rgba(235,235,245,.35);
+    --sep-op: #38383a;
+    --fill: rgba(120,120,128,.35);
+    --fill2: rgba(120,120,128,.28);
+    --fill3: rgba(120,120,128,.22);
+    --fill4: rgba(120,120,128,.14);
+    --blue-t: rgba(10,132,255,.22);
+  }
+  .nav{background:rgba(28,28,30,.92);}
+  .seg-btn.active{background:var(--card);}
+  .toast{background:rgba(44,44,46,.95);}
+  .skel{background:linear-gradient(90deg,#2c2c2e 25%,#3a3a3c 50%,#2c2c2e 75%);background-size:200% 100%;}
+  .pick-cell.avail{background:rgba(52,199,89,.14);}
+  .pick-cell.few{background:rgba(255,159,10,.16);}
+  .pick-cell.full{background:rgba(255,69,58,.14);}
+}
 </style>
-<!-- Firebase (Auth + Realtime Database) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
@@ -379,7 +408,7 @@ html{height:100%;-webkit-text-size-adjust:100%;}
     <button class="btn btn-primary btn-full btn-lg" onclick="doLogin()" id="loginBtn" style="margin-top:8px">
       <span class="btn-txt">Entrar</span>
     </button>
-    <p style="margin-top:12px;font-size:12px;color:var(--lbl3)">Entre com seu email e senha</p>
+    <p style="margin-top:12px;font-size:12px;color:var(--lbl3)">Use o mesmo email/senha criados em Firebase Authentication (Email/senha).</p>
   </div>
 </div>
 
@@ -387,16 +416,10 @@ html{height:100%;-webkit-text-size-adjust:100%;}
 <nav class="nav">
   <div style="width:80px"></div>
   <div class="nav-brand">
-    <div class="nav-title">💅 Rita Cassia</div>
-    <div class="nav-sub">Manicure</div>
+    <img src="logo.png" alt="Rita Cassia · Manicure" class="nav-logo" width="220" height="56" decoding="async" fetchpriority="high">
   </div>
   <div class="nav-actions" style="width:80px;justify-content:flex-end">
     <div id="adminActions" style="display:none;gap:8px;align-items:center">
-      <div class="notif-btn-wrap">
-        <button class="btn btn-ghost btn-sm" onclick="toggleNotif()" id="notifBtn">🔔
-          <span class="notif-badge" id="notifBadge">0</span>
-        </button>
-      </div>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Sair</button>
     </div>
     <div id="guestActions">
@@ -404,15 +427,6 @@ html{height:100%;-webkit-text-size-adjust:100%;}
     </div>
   </div>
 </nav>
-
-<!-- NOTIF PANEL -->
-<div id="notifPanel">
-  <div class="notif-hdr">
-    <div class="notif-hdr-title">Notificações</div>
-    <button class="btn btn-ghost btn-xs" onclick="clearNotifs()">Limpar</button>
-  </div>
-  <div id="notifList"><div class="notif-item"><div class="notif-msg" style="color:var(--lbl3)">Sem notificações</div></div></div>
-</div>
 
 <!-- SEGMENTED TABS -->
 <div class="seg-wrap">
@@ -426,6 +440,8 @@ html{height:100%;-webkit-text-size-adjust:100%;}
 
 <!-- ===== CLIENT ===== -->
 <div id="client" class="section active">
+
+  <div class="sync-banner" id="syncBanner">Sem conexão — alterações serão sincronizadas ao voltar online.</div>
 
   <div class="ok-banner" id="okBanner">
     <span style="font-size:22px;flex-shrink:0">✅</span>
@@ -495,6 +511,11 @@ html{height:100%;-webkit-text-size-adjust:100%;}
           <button class="cal-btn" onclick="pickCalMonth(1)">›</button>
         </div>
         <div class="cal-grid" id="pickCalGrid"></div>
+        <div class="pick-legend" aria-hidden="true">
+          <span><span class="pick-dot pick-dot--ok"></span> Livre</span>
+          <span><span class="pick-dot pick-dot--warn"></span> Poucos horários</span>
+          <span><span class="pick-dot pick-dot--bad"></span> Lotado</span>
+        </div>
       </div>
       <input type="hidden" id="clientDate">
       <div id="dateInfo" style="font-size:13px;font-weight:600;margin-top:10px;padding-left:4px;min-height:18px;text-align:center"></div>
@@ -545,7 +566,7 @@ html{height:100%;-webkit-text-size-adjust:100%;}
     </div>
   </div>
 
-  <p class="ios-pwa-hint" id="iosPwaHint" style="display:none"><strong>📱 iPhone:</strong> no Safari, toque em <strong>Compartilhar</strong> → <strong>Adicionar à Tela de Início</strong> para abrir como app.</p>
+  <p class="ios-pwa-hint" id="iosPwaHint" style="display:none"><strong>📱 iPhone:</strong> no Safari, toque em <strong>Compartilhar</strong> → <strong>Adicionar à Tela de Início</strong> para abrir como app. Link direto: <code style="font-size:11px">#/agendar</code></p>
 </div>
 
 <!-- ===== ADMIN ===== -->
@@ -584,9 +605,9 @@ html{height:100%;-webkit-text-size-adjust:100%;}
     <div class="cal-grid" id="cal"></div>
     <div class="cal-legend">
       <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--blue)"></div>Hoje</div>
-      <div class="cal-leg-item"><div class="cal-leg-dot" style="background:rgba(52,199,89,.5)"></div>Livre</div>
-      <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--orange)"></div>Poucos horários</div>
-      <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--red)"></div>Cheio</div>
+      <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--green);box-shadow:0 0 0 2px rgba(52,199,89,.35)"></div>Livre</div>
+      <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--orange);box-shadow:0 0 0 2px rgba(255,149,0,.4)"></div>Poucos</div>
+      <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--red);box-shadow:0 0 0 2px rgba(255,59,48,.35)"></div>Lotado</div>
       <div class="cal-leg-item"><div class="cal-leg-dot" style="background:var(--sep-op)"></div>Fechado</div>
     </div>
   </div>
@@ -629,6 +650,24 @@ html{height:100%;-webkit-text-size-adjust:100%;}
       </div>
       <button class="btn btn-t-blue btn-sm" onclick="saveWA()" style="align-self:flex-start">Salvar número</button>
     </div>
+  </div>
+
+  <p class="section-title">Link público do cliente</p>
+  <div class="card-plain" style="margin-bottom:16px">
+    <p style="font-size:13px;color:var(--lbl3);margin-bottom:10px">Crie um link que já preenche nome e WhatsApp. Ex.: <code style="font-size:12px">seusite.com/#/cliente/joao</code></p>
+    <div class="ios-field-wrap">
+      <div class="field-label">Identificador (slug)</div>
+      <input type="text" class="ios-field" id="pubSlug" placeholder="joao" maxlength="40" autocomplete="off" pattern="[a-z0-9-_]+">
+    </div>
+    <div class="ios-field-wrap">
+      <div class="field-label">Nome exibido</div>
+      <input type="text" class="ios-field" id="pubName" placeholder="Nome do cliente" maxlength="80">
+    </div>
+    <div class="ios-field-wrap">
+      <div class="field-label">WhatsApp (só números)</div>
+      <input type="tel" class="ios-field" id="pubWA" placeholder="DDD + número" maxlength="11" inputmode="numeric">
+    </div>
+    <button class="btn btn-t-blue btn-sm" onclick="savePublicProfile()">Salvar link público</button>
   </div>
 
   <!-- Horários -->
@@ -809,32 +848,32 @@ html{height:100%;-webkit-text-size-adjust:100%;}
 // ============================================================
 let isAdmin = false;
 let calDate = new Date();
-let appts = JSON.parse(localStorage.getItem('rc2_appts')) || [];
+let appts = [];
+try {
+  const c = localStorage.getItem('rc2_appts_cache') || localStorage.getItem('rc2_appts');
+  if (c) appts = JSON.parse(c) || [];
+} catch (e) {}
 let waNum = localStorage.getItem('rc2_wa') || '';
-let notifs = JSON.parse(localStorage.getItem('rc2_notifs')) || [];
+let notifs = [];
+try {
+  const n = localStorage.getItem('rc2_notifs_cache') || localStorage.getItem('rc2_notifs');
+  if (n) notifs = JSON.parse(n) || [];
+} catch (e) {}
 let apptFilter = 'all';
 let wiz = { procs: [], date: '', time: '' };
 
-// Configure a lista de e-mails que devem liberar acesso ao "Painel".
-// Se estiver vazio, qualquer usuário autenticado (email/senha) vira admin.
+// Emails que podem acessar o painel (vazio = qualquer usuário autenticado vira admin).
 const ADMIN_EMAILS = ['alissonh26@gmail.com'];
 
-function isUserAdmin(user) {
-  if (!user || !user.email) return false;
-  if (!ADMIN_EMAILS || ADMIN_EMAILS.length === 0) return true;
-  return ADMIN_EMAILS.includes(String(user.email).toLowerCase());
-}
-
-// Sua configuração do Firebase (inclui databaseURL para Realtime Database)
 const firebaseConfig = {
-  apiKey: "AIzaSyAqm8ubi_9YkT4Bl9SBlwa0zf-hs6GZLsg",
-  authDomain: "manicure-bba02.firebaseapp.com",
-  projectId: "manicure-bba02",
-  storageBucket: "manicure-bba02.firebasestorage.app",
-  messagingSenderId: "326754226112",
-  appId: "1:326754226112:web:425e2ea1354cb1550a8225",
-  measurementId: "G-Y0WLZZKDM2",
-  databaseURL: "https://manicure-bba02-default-rtdb.firebaseio.com/"
+  apiKey: 'AIzaSyC67ZWgpmtChDCYIG-PPFSgpqTfKavGHb0',
+  authDomain: 'ritacassia-9323c.firebaseapp.com',
+  databaseURL: 'https://ritacassia-9323c-default-rtdb.firebaseio.com',
+  projectId: 'ritacassia-9323c',
+  storageBucket: 'ritacassia-9323c.firebasestorage.app',
+  messagingSenderId: '470308310252',
+  appId: '1:470308310252:web:6e35c5c0c08ffa2c3e69c9',
+  measurementId: 'G-ET1FDDF1NS'
 };
 
 let auth = null;
@@ -843,14 +882,16 @@ let firebaseSyncStarted = false;
 let apptsRemoteIds = new Set();
 let firebaseDbErrorToasted = false;
 
-/** Tenta login anônimo (visitantes). Exige "Anônimo" ativo no Firebase + domínio autorizado. */
+function isUserAdmin(user) {
+  if (!user || !user.email) return false;
+  if (!ADMIN_EMAILS || ADMIN_EMAILS.length === 0) return true;
+  return ADMIN_EMAILS.includes(String(user.email).toLowerCase());
+}
+
 function tryAnonymousAuth() {
   if (!auth || auth.currentUser) return Promise.resolve(auth.currentUser);
   return auth.signInAnonymously().catch((e) => {
     console.warn('[Firebase] Login anônimo:', e?.code, e?.message);
-    if (e?.code === 'auth/operation-not-allowed') {
-      console.warn('[Firebase] Ative: Authentication → Sign-in method → Anônimo.');
-    }
     return null;
   });
 }
@@ -858,7 +899,6 @@ function tryAnonymousAuth() {
 function ensureAuthReady() {
   if (!auth) return Promise.resolve(null);
   if (auth.currentUser) return Promise.resolve(auth.currentUser);
-  // Não resolver na 1ª emissão com user=null (senão gravações falham antes do anônimo).
   return new Promise((resolve) => {
     let settled = false;
     const finish = (u) => {
@@ -877,10 +917,6 @@ function ensureAuthReady() {
   });
 }
 
-/**
- * Espera usuário autenticado (anônimo ou email) antes de gravar no RTDB.
- * Evita PERMISSION_DENIED quando o save roda antes do signInAnonymously terminar.
- */
 function ensureAuthReadyForWrite() {
   if (!auth) return Promise.reject(new Error('NO_AUTH'));
   if (auth.currentUser) return Promise.resolve(auth.currentUser);
@@ -916,7 +952,6 @@ function ensureAuthReadyForWrite() {
   });
 }
 
-/** RTDB não aceita valores `undefined` em .set() — remove antes de salvar. */
 function stripUndefinedDeep(v) {
   if (v === undefined) return null;
   if (v === null || typeof v !== 'object') return v;
@@ -930,10 +965,10 @@ function stripUndefinedDeep(v) {
 
 function onRealtimeDbError(err, ctx) {
   const code = err && err.code;
-  console.error('[Realtime DB]', ctx, code || err && err.message || err);
+  console.error('[Realtime DB]', ctx, code || (err && err.message) || err);
   if (!firebaseDbErrorToasted && (code === 'PERMISSION_DENIED' || (err && String(err.message || '').indexOf('permission') >= 0))) {
     firebaseDbErrorToasted = true;
-    toast('Firebase: sem permissão. Ative login anônimo e adicione este domínio em Authentication.', 'error');
+    toast('Firebase: sem permissão. Ative login anônimo e publique as regras do Realtime Database.', 'error');
   }
 }
 
@@ -954,16 +989,84 @@ const cfgDefaults = {
     { id: 'spa',      name: 'Spa dos Pés',icon: '🦶', price: 35, dur: 90 }
   ]
 };
-let cfg = JSON.parse(localStorage.getItem('rc2_cfg')) || { ...cfgDefaults };
+let cfg = { ...cfgDefaults };
+try {
+  const lc = localStorage.getItem('rc2_cfg_cache') || localStorage.getItem('rc2_cfg');
+  if (lc) cfg = { ...cfgDefaults, ...JSON.parse(lc) };
+} catch (e) {}
 
 // ============================================================
 // INIT
 // ============================================================
+function applyRoute() {
+  const raw = (location.hash || '').replace(/^#/, '').replace(/^\/+/, '');
+  if (raw === 'agendar') {
+    goTab('client');
+    document.getElementById('client')?.scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+  const hm = raw.match(/^cliente\/([^/]+)\/?$/i);
+  if (hm) {
+    const slug = decodeURIComponent(hm[1]).toLowerCase().replace(/[^a-z0-9-_]/g, '');
+    goTab('client');
+    fillClientFromSlug(slug);
+    return;
+  }
+  const path = (location.pathname || '').replace(/\/$/, '') || '/';
+  if (path === '/agendar' || path.endsWith('/agendar')) {
+    goTab('client');
+    document.getElementById('client')?.scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+  const pm = location.pathname.match(/\/cliente\/([^/]+)\/?$/i);
+  if (pm) {
+    const slug = decodeURIComponent(pm[1]).toLowerCase().replace(/[^a-z0-9-_]/g, '');
+    goTab('client');
+    fillClientFromSlug(slug);
+  }
+}
+
+function fillClientFromSlug(slug) {
+  if (!slug) return;
+  if (db) {
+    db.ref('publicProfiles/' + slug).once('value').then((snap) => {
+      const v = snap.val();
+      if (v && (v.name || v.wa)) {
+        if (v.name) document.getElementById('clientName').value = v.name;
+        if (v.wa) document.getElementById('clientWA').value = String(v.wa).replace(/\D/g, '');
+      }
+    }).catch(() => {});
+  }
+  try {
+    const raw = localStorage.getItem('rc2_pf_' + slug);
+    if (raw) {
+      const v = JSON.parse(raw);
+      if (v.name) document.getElementById('clientName').value = v.name;
+      if (v.wa) document.getElementById('clientWA').value = String(v.wa).replace(/\D/g, '');
+    }
+  } catch (e) {}
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   const hint = document.getElementById('iosPwaHint');
   if (hint && isIOS && !isStandalone) hint.style.display = 'block';
+
+  try {
+    const p = JSON.parse(localStorage.getItem('rc2_client_profile') || 'null');
+    if (p && p.name) document.getElementById('clientName').value = p.name;
+    if (p && p.wa) document.getElementById('clientWA').value = p.wa;
+  } catch (e) {}
+
+  window.addEventListener('hashchange', applyRoute);
+  window.addEventListener('popstate', applyRoute);
+  window.addEventListener('online', () => { flushOfflineQueue(); updateSyncBanner(); });
+  window.addEventListener('offline', updateSyncBanner);
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
 
   renderClientProcs();
   // init hidden field (no min needed for custom cal)
@@ -971,10 +1074,10 @@ document.addEventListener('DOMContentLoaded', () => {
   renderPickCal();
   document.getElementById('blockDate').min = todayStr();
   loadCfgUI();
-  updateBadge();
   setInterval(checkNotifs, 60000);
   checkNotifs();
   initFirebaseSync();
+  updateSyncBanner();
 });
 
 // ============================================================
@@ -996,7 +1099,6 @@ function doLogin() {
     btn.classList.remove('btn-loading');
     document.getElementById('loginBg').style.display = 'none';
     document.getElementById('loginPwd').value = '';
-    // Atualiza na hora — não espera só o onAuthStateChanged (parece mais rápido).
     isAdmin = isUserAdmin(cred.user);
     applyAuth();
     goTab('admin');
@@ -1014,7 +1116,6 @@ function logout() {
     isAdmin = false;
     applyAuth();
     goTab('client');
-    document.getElementById('notifPanel').style.display = 'none';
     toast('Você saiu');
   });
 }
@@ -1040,7 +1141,6 @@ function initFirebaseSync() {
     auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
   } catch (e) {}
 
-  // Adia o login anônimo para não competir com o 1º paint / login por email (fica mais fluido).
   setTimeout(() => { tryAnonymousAuth(); }, 400);
 
   auth.onAuthStateChanged((user) => {
@@ -1054,14 +1154,12 @@ function initFirebaseSync() {
     if (isAdmin) checkNewApptNotifs();
   });
 
-  // Sync de WA da manicure (para avisos e mensagens)
   db.ref('meta/waNum').on('value', (snap) => {
     waNum = snap.val() || '';
     const waInput = document.getElementById('waNumber');
     if (waInput && typeof waNum === 'string') waInput.value = waNum;
   }, (err) => onRealtimeDbError(err, 'meta/waNum'));
 
-  // Sync de configurações
   db.ref('cfg').on('value', (snap) => {
     const v = snap.val();
     if (!v) return;
@@ -1076,7 +1174,6 @@ function initFirebaseSync() {
     if (isAdmin && document.getElementById('config')?.classList.contains('active')) { renderSvcEdit(); renderBlocked(); }
   }, (err) => onRealtimeDbError(err, 'cfg'));
 
-  // Sync de agendamentos
   db.ref('appts').on('value', (snap) => {
     const v = snap.val() || {};
     appts = Object.entries(v).map(([id, a]) => ({ id, ...(a || {}) }));
@@ -1085,7 +1182,14 @@ function initFirebaseSync() {
     if (active === 'admin') { renderCal(); renderAppts(); updateStats(); }
     else if (active === 'clients') renderClients();
     else if (active === 'client') renderPickCal();
+    if (isAdmin) checkNewApptNotifs();
   }, (err) => onRealtimeDbError(err, 'appts'));
+
+  setTimeout(() => {
+    applyRoute();
+    updateSyncBanner();
+    flushOfflineQueue();
+  }, 400);
 }
 
 function reqAuth(tab) { if (isAdmin) goTab(tab); else showLogin(); }
@@ -1100,7 +1204,6 @@ function goTab(name) {
   if (btn) btn.classList.add('active');
   const sec = document.getElementById(name);
   if (sec) sec.classList.add('active');
-  document.getElementById('notifPanel').style.display = 'none';
   if (name === 'admin') { renderCal(); renderAppts(); updateStats(); }
   else if (name === 'clients') renderClients();
   else if (name === 'config') { loadCfgUI(); renderSvcEdit(); renderBlocked(); }
@@ -1137,6 +1240,97 @@ function genSlots(dateStr) {
 function pad2(n) { return String(n).padStart(2, '0'); }
 function todayStr() { return new Date().toISOString().split('T')[0]; }
 
+function normalizeTimeStr(t) {
+  if (t == null || t === '') return '';
+  let s = String(t).trim();
+  if (s.length >= 8 && s.indexOf(':') >= 0) s = s.substring(0, 5);
+  const m = s.match(/^(\d{1,2}):(\d{2})/);
+  if (!m) return s;
+  const h = Math.min(23, parseInt(m[1], 10)), mi = Math.min(59, parseInt(m[2], 10));
+  return pad2(h) + ':' + pad2(mi);
+}
+
+function timeToMin(t) {
+  const n = normalizeTimeStr(t);
+  const p = n.split(':');
+  if (p.length < 2) return 0;
+  return parseInt(p[0], 10) * 60 + parseInt(p[1], 10);
+}
+
+function slotStepMin() { return Math.max(5, Number(cfg.slotDur) || 60); }
+
+function procsDurMin(procs) {
+  if (!procs || !procs.length) return slotStepMin();
+  const svcs = procs.map(id => cfg.services.find(s => s.id === id)).filter(Boolean);
+  const d = svcs.reduce((s, v) => s + Number(v.dur || 0), 0);
+  return Math.max(slotStepMin(), d || slotStepMin());
+}
+
+function apptDurMin(a) {
+  if (a && a.durMin != null && Number(a.durMin) > 0) return Number(a.durMin);
+  return procsDurMin(a && a.procs);
+}
+
+function bookingsOverlap(s1, e1, s2, e2) {
+  return s1 < e2 && s2 < e1;
+}
+
+function rangeInvalidForDay(startMin, durMin) {
+  const endMin = startMin + durMin;
+  const [oh, om] = (cfg.openTime || '09:00').split(':').map(Number);
+  const [ch, cm] = (cfg.closeTime || '18:00').split(':').map(Number);
+  const openM = oh * 60 + om;
+  const closeM = ch * 60 + cm;
+  if (startMin < openM || endMin > closeM) return true;
+  if (cfg.lunch && cfg.lunch.on) {
+    const lS = timeToMin(cfg.lunch.start);
+    const lE = timeToMin(cfg.lunch.end);
+    if (startMin < lE && lS < endMin) return true;
+  }
+  return false;
+}
+
+function slotAvailableForBooking(dateStr, timeStart, durMin) {
+  const s = timeToMin(normalizeTimeStr(timeStart));
+  const e = s + durMin;
+  if (rangeInvalidForDay(s, durMin)) return false;
+  for (const a of appts) {
+    if (a.date !== dateStr || a.status === 'cancelled') continue;
+    const as = timeToMin(normalizeTimeStr(a.time));
+    const ae = as + apptDurMin(a);
+    if (bookingsOverlap(s, e, as, ae)) return false;
+  }
+  return true;
+}
+
+function countValidStarts(dateStr, procIds) {
+  const durMin = procIds && procIds.length ? procsDurMin(procIds) : slotStepMin();
+  const slots = genSlots(dateStr);
+  let n = 0;
+  for (const t of slots) {
+    if (slotAvailableForBooking(dateStr, t, durMin)) n++;
+  }
+  return n;
+}
+
+function occupiedSlotsCountForDay(dateStr) {
+  const slots = genSlots(dateStr);
+  const occ = new Set();
+  for (const a of appts) {
+    if (a.date !== dateStr || a.status === 'cancelled') continue;
+    const t0 = normalizeTimeStr(a.time);
+    const startIdx = slots.indexOf(t0);
+    if (startIdx < 0) continue;
+    const span = Math.max(1, Math.ceil(apptDurMin(a) / slotStepMin()));
+    for (let i = 0; i < span && startIdx + i < slots.length; i++) occ.add(startIdx + i);
+  }
+  return occ.size;
+}
+
+function procIdsForCalendar() {
+  return (wiz && wiz.procs && wiz.procs.length) ? wiz.procs : null;
+}
+
 // ============================================================
 // WIZARD
 // ============================================================
@@ -1162,6 +1356,7 @@ function renderClientProcs() {
 
 function wUpdateProcs() {
   wiz.procs = Array.from(document.querySelectorAll('input[name="cp"]:checked')).map(c => c.value);
+  if (document.getElementById('wp2') && document.getElementById('wp2').classList.contains('active')) renderPickCal();
 }
 
 function wNext(step) {
@@ -1192,6 +1387,7 @@ function goWiz(step) {
     else if (i === step) el.classList.add('active');
   }
   wizStep = step;
+  if (step === 2) renderPickCal();
 }
 
 // ============================================================
@@ -1237,23 +1433,24 @@ function renderPickCal() {
     const isUnavail = !cfg.availDays.includes(dow);
 
     const el = document.createElement('div');
-    el.textContent = d;
-
-    const slots = genSlots(ds);
-    const bookedCount = appts.filter(a => a.date === ds && a.status !== 'cancelled').length;
-    const availCount  = slots.length - bookedCount;
+    const availCount = countValidStarts(ds, procIdsForCalendar());
 
     if (isPast) {
       el.className = 'pick-cell past';
+      el.innerHTML = '<div class="pick-cell-inner"><span class="pick-num">' + d + '</span></div>';
     } else if (isBlocked || isUnavail) {
       el.className = 'pick-cell unavail';
       el.title = 'Fechado';
+      el.innerHTML = '<div class="pick-cell-inner"><span class="pick-num">' + d + '</span></div>';
     } else if (availCount <= 0) {
       el.className = 'pick-cell full';
-      el.title = 'Sem horários';
+      el.title = 'Lotado';
+      el.innerHTML = '<div class="pick-cell-inner"><span class="pick-num">' + d + '</span><span class="pick-dot pick-dot--bad"></span></div>';
     } else {
       el.className = 'pick-cell avail' + (availCount <= 2 ? ' few' : '');
       el.title = availCount + ' horário' + (availCount !== 1 ? 's' : '') + ' disponível' + (availCount !== 1 ? 'is' : '');
+      const dotClass = availCount <= 2 ? 'pick-dot--warn' : 'pick-dot--ok';
+      el.innerHTML = '<div class="pick-cell-inner"><span class="pick-num">' + d + '</span><span class="pick-dot ' + dotClass + '"></span></div>';
       if (isToday) el.classList.add('today');
       if (ds === selected) el.classList.add('selected');
       el.onclick = () => pickDay(ds);
@@ -1301,9 +1498,7 @@ function wPickDate() {
     return;
   }
 
-  const slots = genSlots(v);
-  const booked = appts.filter(a => a.date === v && a.status !== 'cancelled').map(a => a.time);
-  const avail = slots.filter(s => !booked.includes(s)).length;
+  const avail = countValidStarts(v, procIdsForCalendar());
 
   if (avail === 0) {
     info.textContent = 'Sem horários disponíveis neste dia';
@@ -1321,14 +1516,18 @@ function wPickDate() {
 function loadClientSlots() {
   const date = wiz.date;
   const slots = genSlots(date);
-  const booked = appts.filter(a => a.date === date && a.status !== 'cancelled').map(a => a.time);
+  const durMin = procsDurMin(wiz.procs);
   const el = document.getElementById('clientSlots');
   if (!slots.length) { el.innerHTML = '<p style="color:var(--red);grid-column:1/-1;font-size:14px">Sem horários configurados</p>'; return; }
+  const validStarts = slots.filter(t => slotAvailableForBooking(date, t, durMin));
+  const critSet = new Set();
+  if (validStarts.length > 1) validStarts.slice(-2).forEach(t => critSet.add(t));
   el.innerHTML = slots.map(t => {
-    const off = booked.includes(t);
+    const off = !slotAvailableForBooking(date, t, durMin);
     const sid = 'ct' + t.replace(':', '');
+    const crit = !off && critSet.has(t);
     return `<div class="ts"><input type="radio" name="ct" id="${sid}" value="${t}" ${off ? 'disabled' : ''} onchange="wPickTime('${t}')">
-      <label for="${sid}" class="ts-lbl">${t}</label></div>`;
+      <label for="${sid}" class="ts-lbl${crit ? ' ts-lbl-warn' : ''}">${t}${crit ? ' ·' : ''}</label></div>`;
   }).join('');
 }
 
@@ -1340,14 +1539,16 @@ function wPickTime(t) {
 function buildSummary() {
   const svcs = wiz.procs.map(id => cfg.services.find(s => s.id === id)).filter(Boolean);
   const total = svcs.reduce((s, v) => s + Number(v.price), 0);
-  const totalDur = svcs.reduce((s, v) => s + Number(v.dur), 0);
+  const totalDur = procsDurMin(wiz.procs);
+  const blocks = Math.max(1, Math.ceil(totalDur / slotStepMin()));
   const [y, m, d] = wiz.date.split('-');
   document.getElementById('bookingSummary').innerHTML =
     '<div class="bs-title">Resumo</div>' +
     svcs.map(s => `<div class="bs-row"><span>${s.icon} ${s.name}</span><span>R$ ${fmtNum(s.price)}</span></div>`).join('') +
     `<div class="bs-row"><span>Data</span><span>${d}/${m}/${y}</span></div>` +
-    `<div class="bs-row"><span>Horário</span><span>${wiz.time}</span></div>` +
-    `<div class="bs-row"><span>Duração aprox.</span><span>${totalDur} min</span></div>` +
+    `<div class="bs-row"><span>Horário início</span><span>${wiz.time}</span></div>` +
+    `<div class="bs-row"><span>Duração total</span><span>${totalDur} min</span></div>` +
+    `<div class="bs-row" style="font-weight:500"><span>Blocos no calendário</span><span>${blocks} × ${slotStepMin()} min</span></div>` +
     `<div class="bs-row"><span>Total estimado</span><span>R$ ${fmtNum(total)}</span></div>`;
 }
 
@@ -1355,8 +1556,13 @@ function submitBooking() {
   const name = document.getElementById('clientName').value.trim();
   if (!name) { toast('Digite seu nome', 'error'); return; }
 
-  const conflict = appts.find(a => a.date === wiz.date && a.time === wiz.time && a.status !== 'cancelled');
-  if (conflict) { toast('Horário reservado agora mesmo! Escolha outro.', 'error'); wBack(4); return; }
+  const durMin = procsDurMin(wiz.procs);
+  if (!slotAvailableForBooking(wiz.date, wiz.time, durMin)) {
+    toast('Esse horário não cabe mais a duração dos serviços. Escolha outro.', 'error');
+    loadClientSlots();
+    wBack(4);
+    return;
+  }
 
   const btn = document.getElementById('wb4');
   btn.classList.add('btn-loading');
@@ -1371,8 +1577,9 @@ function submitBooking() {
       name,
       wa: waClient,
       date: wiz.date,
-      time: wiz.time,
+      time: normalizeTimeStr(wiz.time),
       procs: wiz.procs,
+      durMin,
       total,
       status: 'pending',
       obs: document.getElementById('clientObs').value,
@@ -1381,13 +1588,22 @@ function submitBooking() {
       adminNotified: false
     };
 
+    try {
+      localStorage.setItem('rc2_client_profile', JSON.stringify({ name, wa: waClient, t: Date.now() }));
+    } catch (e) {}
+
     appts.push(a);
-    // Importante: aguarda o Realtime Database atualizar antes de chamar o backend,
-    // para o backend conseguir ler o agendamento por `apptId`.
-    saveAppts()
-      .then(() => sendWAToAdmin(a))
-      .catch(() => sendWAToAdmin(a));
-    addNotif('Novo pedido: ' + name + ' para ' + fmtDate(wiz.date) + ' as ' + wiz.time);
+    const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
+    if (offline) {
+      enqueueOfflineAppt(a);
+      saveApptsCacheOnly();
+      updateSyncBanner();
+      toast('Sem rede — pedido guardado e será enviado ao reconectar.', 'warning');
+    } else {
+      saveAppts()
+        .then(() => sendWAToAdmin(a))
+        .catch(() => sendWAToAdmin(a));
+    }
 
     const msg = waClient
       ? 'Agendamento enviado! Abriremos o WhatsApp da manicure com o pedido — é só enviar.'
@@ -1452,18 +1668,20 @@ function renderCal() {
     const dayAppts = appts.filter(a => a.date === ds && a.status !== 'cancelled');
     const booked = dayAppts.length;
     const total = slots.length;
+    const occ = occupiedSlotsCountForDay(ds);
+    const availStarts = countValidStarts(ds, null);
 
     const cell = document.createElement('div');
     cell.className = 'cal-cell';
     if (today.getDate() === d && today.getMonth() === mo && today.getFullYear() === yr) cell.classList.add('today');
     if (isClosed) cell.classList.add('closed');
     else if (total > 0) {
-      const r = booked / total;
-      if (r >= 1) cell.classList.add('full');
-      else if (r >= 0.6) cell.classList.add('few');
+      const rOcc = total > 0 ? occ / total : 0;
+      if (availStarts <= 0) cell.classList.add('full');
+      else if (availStarts <= 2 || rOcc >= 0.55) cell.classList.add('few');
     }
 
-    cell.title = isClosed ? 'Fechado' : (booked + '/' + total + ' horarios');
+    cell.title = isClosed ? 'Fechado' : ('Livres: ' + availStarts + ' · ocupação ' + occ + '/' + total);
     cell.onclick = () => { if (!isClosed) openDay(ds); };
 
     let html = '<div class="cal-num">' + d + '</div>' +
@@ -1616,14 +1834,22 @@ function handleAdminForm(e) {
   if (!procs.length) { toast('Selecione pelo menos um procedimento', 'error'); return; }
   const svcs = procs.map(id => cfg.services.find(s => s.id === id)).filter(Boolean);
   const total = svcs.reduce((s, v) => s + Number(v.price), 0);
+  const durMin = procsDurMin(procs);
+  const dateStr = document.getElementById('aDate').value;
+  const timeNorm = normalizeTimeStr(document.getElementById('aTime').value);
+  if (!slotAvailableForBooking(dateStr, timeNorm, durMin)) {
+    toast('Conflito de horário ou duração ultrapassa o expediente.', 'error');
+    return;
+  }
 
   appts.push({
     id: Date.now().toString(),
     name: document.getElementById('aN').value.trim(),
     wa: document.getElementById('aWA').value.replace(/\D/g, ''),
-    date: document.getElementById('aDate').value,
-    time: document.getElementById('aTime').value,
+    date: dateStr,
+    time: timeNorm,
     procs,
+    durMin,
     total,
     status: document.getElementById('aSt').value,
     obs: document.getElementById('aObs').value,
@@ -1759,12 +1985,32 @@ function saveWA() {
   waNum = n;
   if (db) {
     ensureAuthReady().then(() => {
-      if (!db) return;
-      db.ref('meta/waNum').set(n).catch(() => {});
+      if (db) db.ref('meta/waNum').set(n).catch(() => {});
     });
   }
-  localStorage.setItem('rc2_wa', n); // fallback local (caso DB não esteja disponível)
+  try { localStorage.setItem('rc2_wa', n); } catch (e) {}
   toast('Numero salvo!', 'success');
+}
+
+function savePublicProfile() {
+  if (!db) { toast('Firebase indisponível', 'error'); return; }
+  const slug = (document.getElementById('pubSlug').value || '').toLowerCase().replace(/[^a-z0-9-_]/g, '');
+  if (!slug) { toast('Defina um identificador (ex.: joao)', 'error'); return; }
+  const name = (document.getElementById('pubName').value || '').trim();
+  const wa = (document.getElementById('pubWA').value || '').replace(/\D/g, '');
+  ensureAuthReadyForWrite().then(() => {
+    if (!auth.currentUser || !auth.currentUser.email) {
+      toast('Entre como admin para salvar o link público.', 'error');
+      return;
+    }
+    db.ref('publicProfiles/' + slug).set(stripUndefinedDeep({ name, wa, updated: Date.now() }))
+      .then(() => {
+        try { localStorage.setItem('rc2_pf_' + slug, JSON.stringify({ name, wa })); } catch (e) {}
+        const base = location.origin + location.pathname;
+        toast('Salvo! Link: ' + base + '#/cliente/' + slug, 'success');
+      })
+      .catch(() => toast('Sem permissão no Firebase (regras publicProfiles).', 'error'));
+  }).catch(() => {});
 }
 
 // ============================================================
@@ -1924,12 +2170,11 @@ function saveSettings() {
 function saveCfg() {
   if (db) {
     ensureAuthReady().then(() => {
-      if (!db) return;
-      db.ref('cfg').set(cfg).catch(() => {});
+      if (db) db.ref('cfg').set(cfg).catch(() => {});
     });
     return;
   }
-  localStorage.setItem('rc2_cfg', JSON.stringify(cfg));
+  try { localStorage.setItem('rc2_cfg_cache', JSON.stringify(cfg)); } catch (e) {}
 }
 
 // ============================================================
@@ -1989,11 +2234,13 @@ function openWAConv(wa) {
 // ============================================================
 function checkNewApptNotifs() {
   if (!isAdmin) return;
+  let changed = false;
   appts.filter(a => a.status === 'pending' && !a.adminNotified).forEach(a => {
     addNotif('Novo pedido: ' + a.name + ' para ' + fmtDate(a.date) + ' as ' + a.time);
     a.adminNotified = true;
+    changed = true;
   });
-  saveAppts();
+  if (changed) saveAppts();
 }
 
 function checkNotifs() {
@@ -2029,43 +2276,7 @@ function trigNotif(msg) {
 function addNotif(msg) {
   notifs.unshift({ msg, t: new Date().toISOString(), r: false });
   if (notifs.length > 50) notifs.length = 50;
-  localStorage.setItem('rc2_notifs', JSON.stringify(notifs));
-  updateBadge();
-}
-
-function updateBadge() {
-  const n = notifs.filter(x => !x.r).length;
-  const el = document.getElementById('notifBadge');
-  if (!el) return;
-  el.style.display = n > 0 ? 'flex' : 'none';
-  el.textContent = n > 9 ? '9+' : n;
-}
-
-function toggleNotif() {
-  const p = document.getElementById('notifPanel');
-  const open = p.style.display === 'block';
-  p.style.display = open ? 'none' : 'block';
-  if (!open) {
-    notifs.forEach(n => n.r = true);
-    localStorage.setItem('rc2_notifs', JSON.stringify(notifs));
-    updateBadge();
-    const el = document.getElementById('notifList');
-    if (!notifs.length) {
-      el.innerHTML = '<div class="notif-item"><div class="notif-msg" style="color:var(--lbl3)">Sem notificacoes</div></div>';
-    } else {
-      el.innerHTML = notifs.slice(0, 15).map(n => {
-        const d = new Date(n.t);
-        const ts = d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) + ' ' + d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-        return `<div class="notif-item"><div class="notif-msg">${esc(n.msg)}</div><div class="notif-time">${ts}</div></div>`;
-      }).join('');
-    }
-  }
-}
-
-function clearNotifs() {
-  notifs = []; localStorage.setItem('rc2_notifs', JSON.stringify(notifs));
-  updateBadge();
-  document.getElementById('notifList').innerHTML = '<div class="notif-item"><div class="notif-msg" style="color:var(--lbl3)">Sem notificacoes</div></div>';
+  try { localStorage.setItem('rc2_notifs_cache', JSON.stringify(notifs)); } catch (e) {}
 }
 
 function reqNotifPerm() {
@@ -2079,7 +2290,52 @@ function reqNotifPerm() {
 // ============================================================
 // UTILITIES
 // ============================================================
+function saveApptsCacheOnly() {
+  try { localStorage.setItem('rc2_appts_cache', JSON.stringify(appts)); } catch (e) {}
+}
+
+function enqueueOfflineAppt(a) {
+  try {
+    const q = JSON.parse(localStorage.getItem('rc2_offline_queue') || '[]');
+    q.push({ id: a.id, a });
+    localStorage.setItem('rc2_offline_queue', JSON.stringify(q));
+  } catch (e) {}
+}
+
+function updateSyncBanner() {
+  const el = document.getElementById('syncBanner');
+  if (!el) return;
+  const q = (() => { try { return JSON.parse(localStorage.getItem('rc2_offline_queue') || '[]'); } catch (e) { return []; } })();
+  const show = (typeof navigator !== 'undefined' && navigator.onLine === false) || (q && q.length > 0);
+  el.classList.toggle('show', !!show);
+}
+
+function flushOfflineQueue() {
+  if (!db || !navigator.onLine) return;
+  let q = [];
+  try { q = JSON.parse(localStorage.getItem('rc2_offline_queue') || '[]'); } catch (e) {}
+  if (!q.length) return;
+  const n0 = q.length;
+  ensureAuthReadyForWrite().then(() => {
+    if (!auth.currentUser) return;
+    const rest = [];
+    const step = (i) => {
+      if (i >= q.length) {
+        localStorage.setItem('rc2_offline_queue', JSON.stringify(rest));
+        saveApptsCacheOnly();
+        updateSyncBanner();
+        if (rest.length === 0 && n0 > 0) toast('Pedidos offline sincronizados!', 'success');
+        return;
+      }
+      const item = q[i];
+      db.ref('appts/' + item.id).set(stripUndefinedDeep(item.a)).then(() => step(i + 1)).catch(() => { rest.push(item); step(i + 1); });
+    };
+    step(0);
+  }).catch(() => {});
+}
+
 function saveAppts() {
+  saveApptsCacheOnly();
   if (db) {
     return ensureAuthReadyForWrite().then(() => {
       if (!auth.currentUser) {
@@ -2094,31 +2350,30 @@ function saveAppts() {
       });
 
       return Promise.all([...writes, ...deletes]).catch((e) => {
-        console.error('Erro ao salvar appts (appts/<id>) no Realtime DB:', e);
+        console.error('Erro ao salvar appts:', e);
         const msg = e && e.message ? String(e.message) : '';
         if (msg.indexOf('PERMISSION_DENIED') >= 0 || msg.indexOf('permission') >= 0) {
-          toast('Sem permissão no banco. Publique as regras (appts/$id .write: auth != null) e login anônimo.', 'error');
+          toast('Sem permissão no Realtime Database. Publique as regras e login anônimo.', 'error');
         } else {
           toast('Falha ao salvar agendamentos.', 'error');
         }
         return null;
       }).then((p) => {
         apptsRemoteIds = newIds;
-        updateBadge();
+        updateSyncBanner();
         return p;
       });
     }).catch((e) => {
       if (e && e.message === 'AUTH_TIMEOUT') {
-        toast('Não autenticou a tempo. Verifique login anônimo e domínio autorizado.', 'error');
+        toast('Não autenticou a tempo. Verifique login anônimo.', 'error');
       } else {
         toast('Não foi possível autenticar para salvar.', 'error');
       }
-      console.warn('saveAppts auth:', e);
       return null;
     });
   }
-  localStorage.setItem('rc2_appts', JSON.stringify(appts));
-  updateBadge();
+  try { localStorage.setItem('rc2_appts_cache', JSON.stringify(appts)); } catch (e) {}
+  updateSyncBanner();
   return Promise.resolve();
 }
 function fmtDate(ds) { const [y,m,d] = ds.split('-'); return d+'/'+m+'/'+y; }
@@ -2148,9 +2403,6 @@ window.addEventListener('click', e => {
     const modalId = e.target.id;
     e.target.classList.remove('active');
     if (modalId === 'clientConfirmModal') resetWiz();
-  }
-  if (!e.target.closest('#notifPanel') && !e.target.closest('#notifBtn')) {
-    document.getElementById('notifPanel').style.display = 'none';
   }
 });
 document.getElementById('loginBg').addEventListener('click', function(e) { if(e.target===this) this.style.display='none'; });

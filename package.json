@@ -1,0 +1,8 @@
+{
+  "name": "ritacassia-manicure",
+  "private": true,
+  "description": "O app usa Firebase via CDN no index.html. O pacote firebase é opcional (SDK modular com bundler).",
+  "dependencies": {
+    "firebase": "^11.0.0"
+  }
+}
