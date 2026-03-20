@@ -2,9 +2,15 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, viewport-fit=cover">
+<meta name="theme-color" content="#007AFF">
+<meta name="color-scheme" content="light">
+<meta name="format-detection" content="telephone=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Rita Cassia">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect fill='%23007AFF' width='180' height='180' rx='40'/%3E%3Ctext x='90' y='118' font-size='88' text-anchor='middle' fill='white'%3E💅%3C/text%3E%3C/svg%3E">
 <title>Rita Cassia · Manicure</title>
 <style>
 :root {
@@ -35,7 +41,8 @@
   --font:   -apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{font-family:var(--font);background:var(--bg);min-height:100vh;color:var(--lbl);-webkit-font-smoothing:antialiased;}
+body{font-family:var(--font);background:var(--bg);min-height:100vh;min-height:-webkit-fill-available;color:var(--lbl);-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom,0px);}
+html{height:100%;-webkit-text-size-adjust:100%;}
 
 /* NAV BAR */
 .nav{background:rgba(242,242,247,.88);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep-op);padding:0 16px;padding-top:env(safe-area-inset-top);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;min-height:56px;}
@@ -52,7 +59,7 @@ body{font-family:var(--font);background:var(--bg);min-height:100vh;color:var(--l
 .seg-btn.locked{opacity:.45;}
 
 /* SECTIONS */
-.section{display:none;padding:12px 16px 40px;animation:fadeUp .25s ease;}
+.section{display:none;padding:12px 16px calc(40px + env(safe-area-inset-bottom,0px));animation:fadeUp .25s ease;}
 .section.active{display:block;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
 
@@ -290,10 +297,9 @@ body{font-family:var(--font);background:var(--bg);min-height:100vh;color:var(--l
 @keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
 .skel{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;}
 
-/* INFO CARD */
-.info-card{background:var(--blue-t);border-radius:var(--rl);padding:16px;margin-bottom:16px;}
-.info-card h3{color:var(--blue);margin-bottom:8px;font-size:14px;font-weight:700;}
-.info-card ol{line-height:2.2;color:var(--lbl);padding-left:18px;font-size:14px;}
+/* PWA / iPhone hint */
+.ios-pwa-hint{font-size:12px;color:var(--lbl3);line-height:1.45;padding:12px 14px;background:rgba(0,122,255,.08);border-radius:var(--rl);margin-top:14px;border:1px solid rgba(0,122,255,.15);}
+.ios-pwa-hint strong{color:var(--blue);font-weight:600;}
 
 /* DANGER ZONE */
 .danger-zone{background:rgba(255,59,48,.07);border-radius:var(--rl);padding:16px;margin-bottom:16px;}
@@ -324,7 +330,7 @@ body{font-family:var(--font);background:var(--bg);min-height:100vh;color:var(--l
 }
 @media(max-width:380px){
   .seg-btn{font-size:11px;padding:7px 4px;}
-  .section{padding:10px 12px 36px;}
+  .section{padding:10px 12px calc(36px + env(safe-area-inset-bottom,0px));}
 }
 
 /* ===== PICK CALENDAR ===== */
@@ -536,15 +542,7 @@ body{font-family:var(--font);background:var(--bg);min-height:100vh;color:var(--l
     </div>
   </div>
 
-  <div class="info-card">
-    <h3>Como funciona</h3>
-    <ol>
-      <li>Escolha o serviço e veja o preço e duração</li>
-      <li>Selecione data e horário disponíveis</li>
-      <li>Informe seu nome e WhatsApp</li>
-      <li>Aguarde — a manicure pode abrir o WhatsApp com mensagem pronta para confirmar</li>
-    </ol>
-  </div>
+  <p class="ios-pwa-hint" id="iosPwaHint" style="display:none"><strong>📱 iPhone:</strong> no Safari, toque em <strong>Compartilhar</strong> → <strong>Adicionar à Tela de Início</strong> para abrir como app.</p>
 </div>
 
 <!-- ===== ADMIN ===== -->
@@ -818,6 +816,12 @@ let wiz = { procs: [], date: '', time: '' };
 // Se estiver vazio, qualquer usuário autenticado (email/senha) vira admin.
 const ADMIN_EMAILS = ['alissonh26@gmail.com'];
 
+function isUserAdmin(user) {
+  if (!user || !user.email) return false;
+  if (!ADMIN_EMAILS || ADMIN_EMAILS.length === 0) return true;
+  return ADMIN_EMAILS.includes(String(user.email).toLowerCase());
+}
+
 // Sua configuração do Firebase (inclui databaseURL para Realtime Database)
 const firebaseConfig = {
   apiKey: "AIzaSyAqm8ubi_9YkT4Bl9SBlwa0zf-hs6GZLsg",
@@ -869,6 +873,11 @@ let cfg = JSON.parse(localStorage.getItem('rc2_cfg')) || { ...cfgDefaults };
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', () => {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const hint = document.getElementById('iosPwaHint');
+  if (hint && isIOS && !isStandalone) hint.style.display = 'block';
+
   renderClientProcs();
   // init hidden field (no min needed for custom cal)
   pickCalDate = new Date();
@@ -886,7 +895,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================
 function showLogin() {
   document.getElementById('loginBg').style.display = 'flex';
-  setTimeout(() => document.getElementById('loginEmail').focus(), 100);
+  requestAnimationFrame(() => document.getElementById('loginEmail').focus());
 }
 
 function doLogin() {
@@ -896,12 +905,16 @@ function doLogin() {
   if (!email || !pwd) { toast('Informe email e senha', 'error'); return; }
   if (!auth) { toast('Firebase ainda carregando, tente em 1 segundo', 'error'); return; }
   btn.classList.add('btn-loading');
-  auth.signInWithEmailAndPassword(email, pwd).then(() => {
+  auth.signInWithEmailAndPassword(email, pwd).then((cred) => {
     btn.classList.remove('btn-loading');
     document.getElementById('loginBg').style.display = 'none';
     document.getElementById('loginPwd').value = '';
-    toast('Login efetuado', 'success');
-    // onAuthStateChanged vai aplicar as permissões
+    // Atualiza na hora — não espera só o onAuthStateChanged (parece mais rápido).
+    isAdmin = isUserAdmin(cred.user);
+    applyAuth();
+    goTab('admin');
+    toast('Bem-vinda! 💅', 'success');
+    checkNewApptNotifs();
   }).catch((e) => {
     btn.classList.remove('btn-loading');
     toast(e?.message ? e.message : 'Falha no login', 'error');
@@ -936,15 +949,14 @@ function initFirebaseSync() {
   auth = firebase.auth();
   db = firebase.database();
 
-  const isUserAdmin = (user) => {
-    if (!user || !user.email) return false; // anônimo não é admin
-    if (!ADMIN_EMAILS || ADMIN_EMAILS.length === 0) return true;
-    return ADMIN_EMAILS.includes(String(user.email).toLowerCase());
-  };
+  try {
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+  } catch (e) {}
 
-  // Se o usuário ainda não tem uma sessão (cliente visitante), cria uma sessão anônima
-  // para permitir leitura/escrita conforme suas regras do Realtime Database.
-  if (!auth.currentUser) auth.signInAnonymously().catch(() => {});
+  // Adia o login anônimo para não competir com o 1º paint / login por email (fica mais fluido).
+  setTimeout(() => {
+    if (!auth.currentUser) auth.signInAnonymously().catch(() => {});
+  }, 400);
 
   auth.onAuthStateChanged((user) => {
     isAdmin = isUserAdmin(user);
